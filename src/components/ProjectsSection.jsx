@@ -1,28 +1,52 @@
-import { ArrowRight, ExternalLink } from 'lucide-react';
+import { ArrowRight, ExternalLink, Plus } from 'lucide-react';
 import { PORTFOLIO_DATA } from '../data';
 
-export function ProjectsSection({ onSelectProject, onShowAllProjects }) {
+export function ProjectsSection({ 
+  projects = PORTFOLIO_DATA.projects, 
+  onSelectProject, 
+  onShowAllProjects, 
+  onNavigateToAdd 
+}) {
   return (
     <section id="projects" className="py-12 sm:py-14 px-6 sm:px-10 border-b border-white/[0.08]">
       
-      {/* Section Header with Horizontal Line */}
-      <div className="flex items-center justify-between gap-6 mb-9">
-        <h2 className="text-base sm:text-lg font-extrabold tracking-[0.12em] uppercase text-white whitespace-nowrap">
-          SELECTED PROJECTS
-        </h2>
-        <div className="h-[1px] bg-white/10 flex-grow hidden sm:block" />
-        <button 
-          onClick={onShowAllProjects}
-          className="group flex items-center gap-3 text-[11px] tracking-[0.18em] text-zinc-400 hover:text-white uppercase font-semibold whitespace-nowrap transition-colors cursor-pointer"
-        >
-          <span>VIEW ALL PROJECTS</span>
-          <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:text-brand group-hover:translate-x-1 transition-all" />
-        </button>
+      {/* Section Header with Horizontal Line & Actions */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-9">
+        <div className="flex items-center gap-3">
+          <h2 className="text-base sm:text-lg font-extrabold tracking-[0.12em] uppercase text-white whitespace-nowrap">
+            SELECTED PROJECTS
+          </h2>
+          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-brand/10 border border-brand/30 text-brand">
+            {projects.length}
+          </span>
+        </div>
+
+        <div className="h-[1px] bg-white/10 flex-grow hidden md:block" />
+
+        <div className="flex items-center gap-5">
+          {onNavigateToAdd && (
+            <button
+              onClick={onNavigateToAdd}
+              className="flex items-center gap-1.5 text-[11px] tracking-[0.16em] text-brand hover:text-white uppercase font-bold transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>TAMBAH PROYEK</span>
+            </button>
+          )}
+
+          <button 
+            onClick={onShowAllProjects}
+            className="group flex items-center gap-2.5 text-[11px] tracking-[0.18em] text-zinc-400 hover:text-white uppercase font-semibold whitespace-nowrap transition-colors cursor-pointer"
+          >
+            <span>VIEW ARCHIVE</span>
+            <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:text-brand group-hover:translate-x-1 transition-all" />
+          </button>
+        </div>
       </div>
 
-      {/* 3-Column Project Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {PORTFOLIO_DATA.projects.slice(0, 3).map((project) => (
+      {/* Responsive Grid for Project Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {projects.map((project) => (
           <div 
             key={project.id}
             onClick={() => onSelectProject(project)}
@@ -60,7 +84,7 @@ export function ProjectsSection({ onSelectProject, onShowAllProjects }) {
                   <p className="text-[8.5px] tracking-[0.22em] text-brand font-bold uppercase">
                     {project.heroSubtitle}
                   </p>
-                  <p className="text-[7.5px] tracking-[0.16em] text-zinc-400 pt-1 uppercase">
+                  <p className="text-[7.5px] tracking-[0.16em] text-zinc-400 pt-1 uppercase truncate">
                     {project.heroDesc}
                   </p>
                 </div>

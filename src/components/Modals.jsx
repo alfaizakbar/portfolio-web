@@ -212,10 +212,10 @@ export function ContactModal({ isOpen, onClose }) {
 }
 
 /* ============= ALL PROJECTS MODAL ============= */
-export function AllProjectsModal({ isOpen, onClose, onSelectProject }) {
+export function AllProjectsModal({ isOpen, onClose, onSelectProject, projects = PORTFOLIO_DATA.projects }) {
   if (!isOpen) return null;
 
-  const allProjects = PORTFOLIO_DATA.projects;
+  const allProjects = projects;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">

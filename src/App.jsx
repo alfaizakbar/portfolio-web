@@ -7,6 +7,8 @@ import { ProjectsSection } from './components/ProjectsSection';
 import { SkillsProcessSection } from './components/SkillsProcessSection';
 import { FooterSection } from './components/FooterSection';
 import { ProjectModal, ContactModal, AllProjectsModal } from './components/Modals';
+import { AddProjectPage } from './components/AddProjectPage';
+import { getStoredProjects } from './utils/portfolioStorage';
 
 export default function App() {
   const [selectedProject, setSelectedProject] = useState(null);
@@ -15,6 +17,20 @@ export default function App() {
   const [showAllProjectsModal, setShowAllProjectsModal] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
+  // Routing state ('/' or '/add')
+  const [currentPath, setCurrentPath] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path === '/add' || path === '/add/') return '/add';
+      if (window.location.hash === '#/add' || window.location.hash === '#add') return '/add';
+    }
+    return '/';
+  });
+
+  // Dynamic projects state persisted in localStorage
+  const [projects, setProjects] = useState(() => getStoredProjects());
+
+  // Mouse spotlight effect
   useEffect(() => {
     const handleMouseMove = (e) => {
       setMousePos({ x: e.clientX, y: e.clientY });
@@ -22,6 +38,55 @@ export default function App() {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
+
+  // Sync routing and localStorage updates across tabs/events
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const path = window.location.pathname;
+      if (path === '/add' || path === '/add/' || window.location.hash === '#/add' || window.location.hash === '#add') {
+        setCurrentPath('/add');
+      } else {
+        setCurrentPath('/');
+      }
+    };
+
+    const handleProjectsChanged = (e) => {
+      if (e.detail) {
+        setProjects(e.detail);
+      } else {
+        setProjects(getStoredProjects());
+      }
+    };
+
+    const handleStorage = (e) => {
+      if (e.key === 'alfaiz_portfolio_projects_v1') {
+        setProjects(getStoredProjects());
+      }
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    window.addEventListener('portfolio_projects_changed', handleProjectsChanged);
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+      window.removeEventListener('portfolio_projects_changed', handleProjectsChanged);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
+  // Navigation handler supporting HTML5 history
+  const navigate = (path) => {
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname !== path) {
+        window.history.pushState({}, '', path);
+      }
+    }
+    setCurrentPath(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleCopy = (text, label) => {
     navigator.clipboard.writeText(text);
@@ -51,21 +116,37 @@ export default function App() {
       {/* Main Container Poster Wrapper */}
       <div className="max-w-[1280px] mx-auto bg-surface border-x border-white/[0.07] shadow-[0_0_120px_rgba(0,0,0,0.9)] relative overflow-hidden">
         
-        <Header onOpenContact={() => setIsContactModalOpen(true)} />
-        
-        <HeroSection />
-        
-        <ProjectsSection 
-          onSelectProject={setSelectedProject}
-          onShowAllProjects={() => setShowAllProjectsModal(true)}
-        />
-        
-        <SkillsProcessSection />
-        
-        <FooterSection 
+        <Header 
           onOpenContact={() => setIsContactModalOpen(true)}
-          onCopy={handleCopy}
+          onNavigate={navigate}
+          currentPath={currentPath}
         />
+        
+        {currentPath === '/add' ? (
+          <AddProjectPage 
+            projects={projects}
+            setProjects={setProjects}
+            onNavigate={navigate}
+          />
+        ) : (
+          <>
+            <HeroSection />
+            
+            <ProjectsSection 
+              projects={projects}
+              onSelectProject={setSelectedProject}
+              onShowAllProjects={() => setShowAllProjectsModal(true)}
+              onNavigateToAdd={() => navigate('/add')}
+            />
+            
+            <SkillsProcessSection />
+            
+            <FooterSection 
+              onOpenContact={() => setIsContactModalOpen(true)}
+              onCopy={handleCopy}
+            />
+          </>
+        )}
 
       </div>
 
@@ -85,6 +166,7 @@ export default function App() {
         isOpen={showAllProjectsModal}
         onClose={() => setShowAllProjectsModal(false)}
         onSelectProject={setSelectedProject}
+        projects={projects}
       />
 
     </div>
